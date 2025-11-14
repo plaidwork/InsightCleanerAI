@@ -1,0 +1,112 @@
+<Window x:Class="InsightCleanerAI.BlacklistWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
+        xmlns:models="clr-namespace:InsightCleanerAI.Models"
+        xmlns:res="clr-namespace:InsightCleanerAI.Resources"
+        xmlns:infra="clr-namespace:InsightCleanerAI.Infrastructure"
+        Title="{x:Static res:Strings.BlacklistWindowTitle}"
+        Height="520"
+        Width="660"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner">
+    <Window.Resources>
+        <ObjectDataProvider x:Key="FilterModes"
+                            MethodName="GetValues"
+                            ObjectType="{x:Type sys:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="models:PathFilterMode" />
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+        <infra:ListModeLabelConverter x:Key="ListModeLabelConverter" />
+    </Window.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="16">
+            <TextBlock Text="{x:Static res:Strings.LabelBlacklist}"
+                       FontSize="16"
+                       FontWeight="Bold" />
+
+            <CheckBox Margin="0,8,0,0"
+                      Content="{x:Static res:Strings.ListEnable}"
+                      IsChecked="{Binding ScanListEnabled}" />
+
+            <StackPanel Orientation="Horizontal"
+                        Margin="0,6,0,0"
+                        IsEnabled="{Binding ScanListEnabled}">
+                <TextBlock VerticalAlignment="Center"
+                           Text="{x:Static res:Strings.ListModeLabel}" />
+                <ComboBox Width="160"
+                          Margin="12,0,0,0"
+                          ItemsSource="{Binding Source={StaticResource FilterModes}}"
+                          SelectedItem="{Binding ScanListMode}">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Converter={StaticResource ListModeLabelConverter}}" />
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+            </StackPanel>
+
+            <TextBox Margin="0,6,0,0"
+                     Height="120"
+                     AcceptsReturn="True"
+                     IsEnabled="{Binding ScanListEnabled}"
+                     VerticalScrollBarVisibility="Auto"
+                     Text="{Binding ScanListEntries, UpdateSourceTrigger=PropertyChanged}" />
+
+            <TextBlock Margin="0,4,0,0"
+                       FontStyle="Italic"
+                       Foreground="Gray"
+                       Text="{x:Static res:Strings.BlacklistHint}" />
+
+            <Separator Margin="0,20,0,14" />
+
+            <TextBlock Text="{x:Static res:Strings.RecognitionBlacklistLabel}"
+                       FontSize="16"
+                       FontWeight="Bold" />
+
+            <CheckBox Margin="0,8,0,0"
+                      Content="{x:Static res:Strings.ListEnable}"
+                      IsChecked="{Binding RecognitionListEnabled}" />
+
+            <StackPanel Orientation="Horizontal"
+                        Margin="0,6,0,0"
+                        IsEnabled="{Binding RecognitionListEnabled}">
+                <TextBlock VerticalAlignment="Center"
+                           Text="{x:Static res:Strings.ListModeLabel}" />
+                <ComboBox Width="160"
+                          Margin="12,0,0,0"
+                          ItemsSource="{Binding Source={StaticResource FilterModes}}"
+                          SelectedItem="{Binding RecognitionListMode}">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Converter={StaticResource ListModeLabelConverter}}" />
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+            </StackPanel>
+
+            <TextBox Margin="0,6,0,0"
+                     Height="120"
+                     AcceptsReturn="True"
+                     IsEnabled="{Binding RecognitionListEnabled}"
+                     VerticalScrollBarVisibility="Auto"
+                     Text="{Binding RecognitionListEntries, UpdateSourceTrigger=PropertyChanged}" />
+
+            <TextBlock Margin="0,4,0,0"
+                       FontStyle="Italic"
+                       Foreground="Gray"
+                       Text="{x:Static res:Strings.RecognitionBlacklistHint}" />
+
+            <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Right"
+                        Margin="0,20,0,0">
+                <Button Content="{x:Static res:Strings.CloseButton}"
+                        Width="100"
+                        IsDefault="True"
+                        Click="CloseButton_Click" />
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
+</Window>

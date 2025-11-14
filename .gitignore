@@ -1,0 +1,12 @@
+# Build outputs
+**/bin/
+**/obj/
+
+# VS/IDE metadata
+*.user
+*.suo
+.vscode/
+
+# Runtime artifacts
+*.db
+*.log
