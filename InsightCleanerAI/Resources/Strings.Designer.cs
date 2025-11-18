@@ -39,6 +39,8 @@ namespace InsightCleanerAI.Resources
         public static string BlockedBadge => GetString(nameof(BlockedBadge));
         public static string StatusSelectFolder => GetString(nameof(StatusSelectFolder));
         public static string StatusPathMissing => GetString(nameof(StatusPathMissing));
+        public static string StatusNoLocalModels => GetString(nameof(StatusNoLocalModels));
+        public static string StatusNoCloudModels => GetString(nameof(StatusNoCloudModels));
         public static string StatusPreparingScan => GetString(nameof(StatusPreparingScan));
         public static string StatusScanningFormat => GetString(nameof(StatusScanningFormat));
         public static string StatusScanComplete => GetString(nameof(StatusScanComplete));

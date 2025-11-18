@@ -77,49 +77,72 @@ dotnet build InsightCleanerAI/InsightCleanerAI.csproj -c Release
 
 ---
 
-## 🎯 功能增强日志（2025版本更新）
+## 🎯 功能增强与Bug修复（2025版本更新）
 
-### 第一步：管理员权限检测功能
+### 一、原项目Bug修复
 
-**新增文件：**
-- `Infrastructure/AdminHelper.cs` - 管理员权限检测工具类
+#### 1. 本地LLM超时问题
+**问题描述：**
+- 所有LocalLLM请求在100秒时超时，文件显示"尚未生成说明"
+- 大参数模型（如 gemma3:27b）需要40-60秒响应时间，原默认超时不足
 
-**功能说明：**
-- 新增 `IsRunningAsAdmin()` 静态方法，用于检测当前进程是否以管理员身份运行
-- 使用 Windows API（`WindowsIdentity` 和 `WindowsPrincipal`）进行权限验证
-- 为删除功能提供安全的权限检查基础
+**根本原因：**
+1. 静态 HttpClient 使用默认100秒超时，无法通过 CancellationToken 覆盖
+2. `ReadAsStringAsync()` 使用了错误的 CancellationToken，未能响应配置的超时时间
 
-### 第二步：节点详情面板删除功能
+**修复方案：**
+- 将 `HttpClient.Timeout` 设置为 `Timeout.InfiniteTimeSpan`，完全依赖 CancellationTokenSource 控制超时
+- 修复 `ReadAsStringAsync(linkedCts.Token)` 使用正确的超时 Token
+- 新增 `LocalLlmRequestTimeoutSeconds` 配置项，默认300秒
 
 **修改文件：**
-- `MainWindow.xaml` - 在节点详情面板添加删除按钮UI
+- `Services/LocalLlmInsightProvider.cs:22-25, 75`
+- `Models/AiConfiguration.cs:35`
+- `Infrastructure/UserConfig.cs:32`
+
+**验证结果：**
+- gemma3:27b 成功生成中文分析响应，响应时间约40秒
+- 大模型（27B+）可正常工作，建议配置600秒或更长超时
+
+---
+
+### 二、新增功能
+
+#### 功能模块 1：文件删除功能
+
+**1.1 管理员权限检测**
+- 新增 `Infrastructure/AdminHelper.cs` 工具类
+- 实现 `IsRunningAsAdmin()` 静态方法，基于 Windows API（WindowsIdentity 和 WindowsPrincipal）
+- 为删除功能提供安全的权限检查基础
+
+**1.2 节点详情面板删除按钮**
+- 在右侧节点详情面板新增红色"删除文件/文件夹"按钮
+- 未选中节点时自动禁用按钮
+- 非管理员用户点击时弹出权限提示，引导以管理员身份重启程序
+- 管理员用户点击时显示二次确认对话框
+
+**1.3 安全保护机制**
+- 隐私模式下（`FullPath` 为空）自动禁用删除功能
+- 扫描过程中禁止删除操作
+- 删除操作需要用户明确确认
+
+**修改文件：**
+- `MainWindow.xaml` - 添加删除按钮UI
 - `MainWindow.xaml.cs` - 实现删除逻辑和权限控制
 
-**功能特性：**
-- 在右侧节点详情面板新增红色"删除文件/文件夹"按钮
-- 按钮在未选中节点时自动禁用
-- 点击删除前自动检查管理员权限
-- 非管理员用户点击时弹出友好提示："删除功能需要管理员权限。请以管理员身份重新启动本程序以使用此功能。"
-- 管理员用户可正常使用删除功能，删除前会显示确认对话框
+---
 
-**安全措施：**
-- 删除操作需要二次确认
-- 隐私模式下自动禁用删除功能（`FullPath` 为空时）
-- 扫描过程中禁止删除操作
+#### 功能模块 2：AI模型管理系统
 
-### 第三步：模型列表自动获取服务
+**2.1 模型列表自动获取服务**
 
-**新增文件：**
-- `Services/ModelListService.cs` - 统一的模型列表获取服务
-
-**支持的API格式：**
+新增 `Services/ModelListService.cs` 统一服务，支持：
 
 **云端模型获取：**
-- 支持 OpenAI 标准接口 (`GET /v1/models`)
+- OpenAI 标准接口 (`GET /v1/models`)
 - 自动解析 `{ "data": [{ "id": "model-name" }] }` 格式
-- 智能构建 `/models` 端点（自动从 `/chat/completions` 转换）
-- 10秒超时保护
-- 完整的错误日志记录
+- 智能端点构建（自动从 `/chat/completions` 转换为 `/models`）
+- 10秒超时保护，完整的错误日志记录
 
 **本地模型获取：**
 - 优先尝试 Ollama API (`GET /api/tags`)
@@ -127,144 +150,139 @@ dotnet build InsightCleanerAI/InsightCleanerAI.csproj -c Release
 - 失败后自动回退到 OpenAI 兼容接口
 - 支持多种响应格式自适应
 
-### 第四步：ViewModel 模型列表支持
+**2.2 ViewModel 模型列表支持**
 
-**修改文件：**
-- `ViewModels/MainViewModel.cs`
+修改 `ViewModels/MainViewModel.cs`，新增：
 
-**新增属性：**
+**属性：**
 - `CloudModels` - 云端模型列表（ObservableCollection<string>）
 - `LocalModels` - 本地模型列表（ObservableCollection<string>）
-- `IsLoadingCloudModels` - 云端模型加载状态标志
-- `IsLoadingLocalModels` - 本地模型加载状态标志
+- `IsLoadingCloudModels` / `IsLoadingLocalModels` - 加载状态标志
 
-**新增方法：**
+**方法：**
 - `LoadCloudModelsAsync()` - 异步加载云端可用模型
 - `LoadLocalModelsAsync()` - 异步加载本地可用模型
 
 **特性：**
-- 自动防止重复加载（加载中时忽略新请求）
+- 防止重复加载（加载中时忽略新请求）
 - 完整的异常处理和日志记录
 - 加载完成后自动清空旧列表并填充新数据
 
-### 第五步：设置界面重构
+**2.3 设置界面模型选择器重构**
 
-**修改文件：**
-- `SettingsWindow.xaml` - 界面布局升级
-- `SettingsWindow.xaml.cs` - 事件处理逻辑
+修改 `SettingsWindow.xaml` 和 `SettingsWindow.xaml.cs`：
 
-**云端模型配置改进：**
-- 原"云端模型"文本输入框 → 可编辑的 ComboBox 下拉框
+**云端模型配置：**
+- 文本输入框 → 可编辑的 ComboBox 下拉框
 - 新增"获取模型"按钮（位于下拉框右侧）
-- 加载中按钮自动变为"加载中..."并禁用
-- 成功后弹窗显示："成功获取 X 个模型"
-- 失败时显示详细排查提示：
-  - 检查服务地址是否正确
-  - 检查 API Key 是否有效
-  - 检查网络连接是否正常
+- 加载中按钮显示"加载中..."并自动禁用
+- 成功后弹窗："成功获取 X 个模型"
+- 失败时显示详细排查提示（服务地址、API Key、网络连接）
 
-**本地模型配置改进：**
-- 原"本地模型"文本输入框 → 可编辑的 ComboBox 下拉框
+**本地模型配置：**
+- 文本输入框 → 可编辑的 ComboBox 下拉框
 - 新增"获取模型"按钮
 - 仅在 AI 模式为"本地 LLM 服务"时启用
-- 失败时提示检查：
-  - 本地 LLM 服务是否已启动
-  - 服务地址是否正确
-  - 是否支持模型列表接口
+- 失败时提示检查：本地 LLM 服务状态、服务地址、接口支持
 
 **用户体验提升：**
-- 下拉框可编辑，支持手动输入模型名（兼容未列出的模型）
-- 自动禁用/启用逻辑，避免误操作
-- 中文友好提示，所有错误信息都有明确的解决方向
+- 下拉框支持手动输入（兼容未列出的模型）
+- 智能启用/禁用逻辑，避免误操作
+- 中文友好提示，错误信息包含明确的解决方向
 
-### 第六步：本地LLM响应解析增强（最新修复）
+**2.4 启动时模型验证与自动恢复**
 
-**修改文件：**
-- `Services/LocalLlmInsightProvider.cs`
+实现位置：`MainViewModel.cs:86-151`
 
-**问题修复：**
-- 修复了 gemma3:27b 等小模型返回"暂无说明"的问题
-- 原因：响应格式不标准或解析失败时直接返回空结果
-
-**改进内容：**
-
-1. **增强的响应解析：**
-   - 支持 Ollama 格式：`{ "response": "..." }`
-   - 支持 OpenAI 格式：`{ "choices": [{ "message": { "content": "..." } }] }`
-   - 支持简化格式：`{ "content": "..." }`, `{ "text": "..." }`, `{ "output": "..." }`
-   - 支持 `choices[].text` 字段（某些实现）
-
-2. **容错机制：**
-   - 如果 JSON 解析失败，使用原始响应（截断至300字符）
-   - 确保即使格式不标准，也能显示模型的输出
-   - 不再出现"暂无说明"的情况（除非模型真的没有返回任何内容）
-
-3. **调试日志增强：**
-   - 记录每次本地 LLM 请求："本地LLM请求：{文件名}"
-   - 记录响应前200字符："本地LLM响应：{前200字符}..."
-   - 记录解析失败时的警告："本地LLM响应解析失败，使用原始响应"
-   - 记录成功："本地LLM成功：{文件名}"
-   - 记录异常详情："本地LLM异常：{文件名}"
-
-4. **文本处理优化：**
-   - 自动 `Trim()` 去除首尾空白
-   - 智能截断超长响应（避免UI卡顿）
-   - 保留完整的语义信息
-
-**日志位置：**
-所有调试信息记录在 `%AppData%\InsightCleanerAI\logs\debug.log`，方便排查问题。
-
-### 第七步：Bug修复（设置界面交互优化）
-
-**修改文件：**
-- `SettingsWindow.xaml` - 修复AI模式ComboBox绑定
-- `ViewModels/MainViewModel.cs` - 调整模型列表清空逻辑
-
-**修复问题：**
-
-1. **严重Bug：清空模型名导致AI功能失效** ⚠️
-   - 问题：v1.1.2中引入的bug - 启动时清空了 `CloudModel` 和 `LocalLlmModel`
-   - 影响：即使配置了endpoint和模型，AI提供者检查到模型名为空就直接返回空结果
-   - 症状：Ollama被调用（日志显示请求），但界面显示"[离线]"或"尚未生成说明"
-   - 根本原因：`LocalLlmInsightProvider` 第28-32行检查模型名，为空则返回 `NodeInsight.Empty()`
-   - 修复：只清空 `CloudModels` 和 `LocalModels` 集合（下拉列表），保留配置中的模型名
-   - 代码位置：`MainViewModel.cs:85-89`
-   - 效果：AI功能恢复正常，但下拉框会显示历史模型名（这是预期行为）
-
-2. **模型下拉框显示历史模型名**
-   - 问题：启动程序后，模型下拉框自动显示上次保存的模型名（如 gemma3:27b）
-   - 说明：这是 **正常行为**，因为需要保留模型名让AI工作
-   - ComboBox行为：`ItemsSource` 清空 → 下拉列表为空，`Text` 保留 → 显示历史值
-   - 建议：如果不想看到历史模型名，可以在设置中手动清空后保存
-
-3. **AI模式选择后配置项未立即启用**
-   - 问题：在设置窗口选择"本地 LLM 服务"后，本地模型配置区域没有立即启用
-   - 修复：明确指定 `Mode=TwoWay` 绑定
-   - 效果：选择AI模式后，对应的配置区域会立即启用/禁用
-
-**技术细节：**
-```csharp
-// MainViewModel.cs 构造函数中的修复（v1.1.3）
-var config = UserConfigStore.Load();
-ApplyConfig(config);
-
-// 启动时清空模型列表（ItemsSource），确保下拉框的下拉列表为空
-// 但保留配置中的模型名（Text绑定），这样AI功能可以正常工作
-// 用户点击"获取模型"按钮后会填充下拉列表
-CloudModels.Clear();
-LocalModels.Clear();
+**启动流程：**
+```
+加载配置 → 保存模型名 → 清空显示 → 异步获取模型 → 验证并恢复
 ```
 
-**调试建议：**
-如果遇到"AI模式显示为本地LLM但实际使用离线规则"的问题：
-1. 检查配置文件：`%AppData%\InsightCleanerAI\settings.json` 中 `AiMode` 应该是 `2`（LocalLlm），而不是 `1`（Local）
-2. 重新设置并保存：打开设置 → 选择"本地 LLM 服务" → 填写endpoint和模型名 → 点击"关闭"按钮
-3. 查看日志：`%AppData%\InsightCleanerAI\logs\debug.log` 查找 `本地LLM请求` 和 `本地LLM响应`
+**验证逻辑：**
+1. 启动时清空模型名称显示（保持UI干净）
+2. 根据AI模式自动获取可用模型列表
+3. 验证保存的模型是否在可用列表中
+4. 如果保存的模型（如 gemma3:27b）在列表中，自动恢复显示
+5. 如果不在列表中，保持为空
 
-### 使用建议
+**2.5 扫描前模型可用性检查**
+
+实现位置：`MainViewModel.cs:475-493`
+
+**拦截逻辑：**
+- LocalLlm 模式：检查 `LocalModels.Count > 0`，否则拦截并提示
+- KeyOnline 模式：检查 `CloudModels.Count > 0`，否则拦截并提示
+- 离线规则和关闭模式：不检查，正常运行
+
+**新增状态消息：**
+- `StatusNoLocalModels`: 未获取到可用的本地模型（Strings.resx:131-136）
+- `StatusNoCloudModels`: 未获取到可用的云端模型（Strings.resx:131-136）
+
+---
+
+#### 功能模块 3：本地LLM响应解析增强
+
+修改 `Services/LocalLlmInsightProvider.cs`
+
+**3.1 多格式响应解析**
+- Ollama 格式：`{ "response": "..." }`
+- OpenAI 格式：`{ "choices": [{ "message": { "content": "..." } }] }`
+- 简化格式：`{ "content": "..." }`, `{ "text": "..." }`, `{ "output": "..." }`
+- 特殊格式：`choices[].text` 字段（某些实现）
+
+**3.2 容错机制**
+- JSON 解析失败时，使用原始响应（截断至300字符）
+- 确保即使格式不标准，也能显示模型输出
+- 彻底消除"暂无说明"的情况（除非模型真的无返回内容）
+
+**3.3 调试日志增强**
+- 记录每次本地 LLM 请求：`本地LLM请求：{文件名}（超时={timeoutSeconds}秒）`
+- 记录响应前200字符：`本地LLM响应：{前200字符}...`
+- 记录解析失败警告：`本地LLM响应解析失败，使用原始响应`
+- 记录成功和异常详情
+
+**3.4 文本处理优化**
+- 自动 `Trim()` 去除首尾空白
+- 智能截断超长响应（避免UI卡顿）
+- 保留完整语义信息
+
+**日志位置：**
+`%AppData%\InsightCleanerAI\logs\debug.log`
+
+---
+
+### 三、技术架构更新
+
+**新增依赖：** 无（所有功能使用 .NET 5.0 标准库实现）
+
+**核心类图：**
+```
+Infrastructure/
+  ├── AdminHelper.cs              # 管理员权限检测（新增）
+  └── （原有文件...）
+
+Services/
+  ├── ModelListService.cs         # 模型列表获取（新增）
+  ├── LocalLlmInsightProvider.cs  # 本地LLM适配器（增强）
+  └── （原有文件...）
+
+ViewModels/
+  └── MainViewModel.cs            # 增加模型列表管理（增强）
+```
+
+**API 兼容性：**
+- **Ollama**: 完全支持 `/api/tags` 和 `/api/generate`
+- **OpenAI**: 支持标准 `/v1/models` 和 `/v1/chat/completions`
+- **DeepSeek**: 支持（OpenAI 兼容）
+- **其他兼容服务**: 自动适配
+
+---
+
+### 四、使用建议
 
 **删除功能：**
-- 建议始终以管理员身份运行程序以获得完整功能
+- 建议以管理员身份运行程序以获得完整功能
 - 删除前请仔细确认，已删除文件无法恢复
 - 建议先在测试目录测试删除功能
 
@@ -280,35 +298,34 @@ LocalModels.Clear();
 
 ---
 
-## 技术架构更新
-
-### 新增依赖
-无新增外部依赖，所有功能使用 .NET 5.0 标准库实现。
-
-### 核心类图
-```
-Infrastructure/
-  ├── AdminHelper.cs           # 管理员权限检测
-  └── （原有文件...）
-
-Services/
-  ├── ModelListService.cs      # 模型列表获取（新增）
-  ├── LocalLlmInsightProvider.cs  # 本地LLM适配器（增强）
-  └── （原有文件...）
-
-ViewModels/
-  └── MainViewModel.cs         # 增加模型列表管理
-```
-
-### API 兼容性
-- **Ollama**: 完全支持 `/api/tags` 和 `/api/generate`
-- **OpenAI**: 支持标准 `/v1/models` 和 `/v1/chat/completions`
-- **DeepSeek**: 支持（OpenAI 兼容）
-- **其他兼容服务**: 自动适配
-
----
-
 ## 版本历史
+
+**v1.1.7 (2025-11-18)** - 模型验证与扫描拦截优化
+- 🎯 **启动时模型验证逻辑**：
+  - 启动时清空模型名称显示，保持UI干净
+  - 自动获取可用模型列表后，验证保存的模型是否在列表中
+  - 如果保存的模型（如gemma3:27b）不在可用列表中，保持为空
+  - 如果在列表中，自动恢复显示
+  - 代码位置：`MainViewModel.cs:86-151`
+- 🛡️ **扫描前模型可用性检查**：
+  - 根据AI模式智能检查：LocalLlm检查本地模型，KeyOnline检查云端模型
+  - 如果选择LocalLlm但`LocalModels.Count == 0`，拦截扫描并提示
+  - 如果选择KeyOnline但`CloudModels.Count == 0`，拦截扫描并提示
+  - 离线规则和关闭模式不检查，正常运行
+  - 代码位置：`MainViewModel.cs:475-493`
+- 📝 **新增状态消息**：
+  - `StatusNoLocalModels`: 未获取到可用的本地模型的提示
+  - `StatusNoCloudModels`: 未获取到可用的云端模型的提示
+  - 代码位置：`Strings.resx:131-136`
+- 🔄 **启动流程优化**：
+  ```
+  加载配置 → 保存模型名 → 清空显示 → 异步获取模型 → 验证并恢复
+  ```
+- ✅ 用户体验改进：
+  - 启动后模型名称框始终为空（无论配置中保存了什么）
+  - 1-2秒后自动获取并填充下拉列表
+  - 如果保存的模型在列表中，自动恢复显示；否则保持为空
+  - 扫描前精准拦截，避免用户困惑
 
 **v1.1.6 (2025-11-18)** - HttpClient超时修复与启动优化
 - 🔧 **根本性修复**：解决LocalLLM请求真正的超时问题

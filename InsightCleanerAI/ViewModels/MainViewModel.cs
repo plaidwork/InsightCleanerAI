@@ -83,7 +83,14 @@ namespace InsightCleanerAI.ViewModels
             var config = UserConfigStore.Load();
             ApplyConfig(config);
 
-            // 启动时自动获取模型列表
+            // 保存配置中的模型名称，然后清空显示
+            var savedLocalModel = AiConfiguration.LocalLlmModel;
+            var savedCloudModel = AiConfiguration.CloudModel;
+            AiConfiguration.LocalLlmModel = string.Empty;
+            AiConfiguration.CloudModel = string.Empty;
+            DebugLog.Info($"启动时清空模型名称显示 - 保存的本地模型: {savedLocalModel}, 保存的云端模型: {savedCloudModel}");
+
+            // 启动时自动获取模型列表并验证保存的模型
             DebugLog.Info("启动时自动获取模型列表");
             _ = Task.Run(async () =>
             {
@@ -93,10 +100,48 @@ namespace InsightCleanerAI.ViewModels
                     if (SelectedAiMode == AiMode.LocalLlm && !string.IsNullOrWhiteSpace(AiConfiguration.LocalLlmEndpoint))
                     {
                         await LoadLocalModelsAsync();
+
+                        // 验证保存的本地模型是否在可用列表中
+                        if (!string.IsNullOrWhiteSpace(savedLocalModel))
+                        {
+                            if (LocalModels.Count > 0 && LocalModels.Contains(savedLocalModel))
+                            {
+                                DebugLog.Info($"恢复本地模型: {savedLocalModel}");
+                                AiConfiguration.LocalLlmModel = savedLocalModel;
+                                RaisePropertyChanged(nameof(LocalLlmModel));
+                            }
+                            else
+                            {
+                                DebugLog.Warning($"配置的本地模型 '{savedLocalModel}' 不在可用列表中，保持为空");
+                            }
+                        }
+                        else
+                        {
+                            DebugLog.Info("未配置本地模型，保持为空");
+                        }
                     }
                     else if (SelectedAiMode == AiMode.KeyOnline && !string.IsNullOrWhiteSpace(AiConfiguration.CloudEndpoint))
                     {
                         await LoadCloudModelsAsync();
+
+                        // 验证保存的云端模型是否在可用列表中
+                        if (!string.IsNullOrWhiteSpace(savedCloudModel))
+                        {
+                            if (CloudModels.Count > 0 && CloudModels.Contains(savedCloudModel))
+                            {
+                                DebugLog.Info($"恢复云端模型: {savedCloudModel}");
+                                AiConfiguration.CloudModel = savedCloudModel;
+                                RaisePropertyChanged(nameof(CloudModel));
+                            }
+                            else
+                            {
+                                DebugLog.Warning($"配置的云端模型 '{savedCloudModel}' 不在可用列表中，保持为空");
+                            }
+                        }
+                        else
+                        {
+                            DebugLog.Info("未配置云端模型，保持为空");
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -105,7 +150,7 @@ namespace InsightCleanerAI.ViewModels
                 }
             });
 
-            DebugLog.Info($"构造函数完成 - AiConfiguration.LocalLlmModel={AiConfiguration.LocalLlmModel}");
+            DebugLog.Info($"构造函数完成 - 模型名称已清空，等待获取后验证");
 
             InitializeStorage();
         }
@@ -470,6 +515,26 @@ namespace InsightCleanerAI.ViewModels
                 StatusMessage = Strings.StatusPathMissing;
                 DebugLog.Warning($"Scan skipped: root path '{RootPath}' does not exist.");
                 return;
+            }
+
+            // 检查AI模式下模型是否可用
+            if (SelectedAiMode == AiMode.LocalLlm)
+            {
+                if (LocalModels.Count == 0)
+                {
+                    StatusMessage = Strings.StatusNoLocalModels;
+                    DebugLog.Warning($"Scan skipped: LocalLlm mode selected but no local models available.");
+                    return;
+                }
+            }
+            else if (SelectedAiMode == AiMode.KeyOnline)
+            {
+                if (CloudModels.Count == 0)
+                {
+                    StatusMessage = Strings.StatusNoCloudModels;
+                    DebugLog.Warning($"Scan skipped: KeyOnline mode selected but no cloud models available.");
+                    return;
+                }
             }
 
             var scanFilter = BuildScanFilterEntries();
