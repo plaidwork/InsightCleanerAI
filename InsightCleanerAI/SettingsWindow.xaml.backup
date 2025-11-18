@@ -7,7 +7,7 @@
         xmlns:res="clr-namespace:InsightCleanerAI.Resources"
         Title="{x:Static res:Strings.SettingsTitle}"
         Height="680"
-        Width="750"
+        Width="720"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize">
     <Window.Resources>
@@ -69,11 +69,10 @@
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="190" />
             <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="28" />
         </Grid.ColumnDefinitions>
 
         <TextBlock Grid.Row="0"
-                   Grid.ColumnSpan="3"
+                   Grid.ColumnSpan="2"
                    Text="{x:Static res:Strings.SectionBasicsTitle}"
                    FontSize="18"
                    FontWeight="Bold"
@@ -87,15 +86,6 @@
                   Grid.Column="1"
                   ItemsSource="{Binding Source={StaticResource PrivacyModes}}"
                   SelectedItem="{Binding SelectedPrivacyMode}" />
-        <Button Grid.Row="1"
-                Grid.Column="2"
-                Content="❓"
-                Width="24"
-                Height="24"
-                Margin="4,0,0,0"
-                FontSize="12"
-                Click="HelpButton_PrivacyMode_Click"
-                ToolTip="查看帮助" />
 
         <TextBlock Grid.Row="2"
                    Grid.Column="0"
@@ -111,15 +101,6 @@
                 </DataTemplate>
             </ComboBox.ItemTemplate>
         </ComboBox>
-        <Button Grid.Row="2"
-                Grid.Column="2"
-                Content="❓"
-                Width="24"
-                Height="24"
-                Margin="4,0,0,0"
-                FontSize="12"
-                Click="HelpButton_AiMode_Click"
-                ToolTip="查看帮助" />
 
         <TextBlock Grid.Row="3"
                    Grid.Column="0"
@@ -135,15 +116,6 @@
                 </DataTemplate>
             </ComboBox.ItemTemplate>
         </ComboBox>
-        <Button Grid.Row="3"
-                Grid.Column="2"
-                Content="❓"
-                Width="24"
-                Height="24"
-                Margin="4,0,0,0"
-                FontSize="12"
-                Click="HelpButton_InquiryScope_Click"
-                ToolTip="查看帮助" />
 
         <TextBlock Grid.Row="4"
                    Grid.Column="0"
@@ -152,15 +124,6 @@
         <PasswordBox Grid.Row="4"
                      Grid.Column="1"
                      PasswordChanged="ApiKeyBox_OnPasswordChanged" />
-        <Button Grid.Row="4"
-                Grid.Column="2"
-                Content="❓"
-                Width="24"
-                Height="24"
-                Margin="4,0,0,0"
-                FontSize="12"
-                Click="HelpButton_CloudApiKey_Click"
-                ToolTip="查看帮助" />
 
         <TextBlock Grid.Row="5"
                    Grid.Column="0"
@@ -169,15 +132,6 @@
         <TextBox Grid.Row="5"
                  Grid.Column="1"
                  Text="{Binding RemoteServerUrl, UpdateSourceTrigger=PropertyChanged}" />
-        <Button Grid.Row="5"
-                Grid.Column="2"
-                Content="❓"
-                Width="24"
-                Height="24"
-                Margin="4,0,0,0"
-                FontSize="12"
-                Click="HelpButton_CloudEndpoint_Click"
-                ToolTip="查看帮助" />
 
         <TextBlock Grid.Row="6"
                    Grid.Column="0"
@@ -186,7 +140,7 @@
         <StackPanel Grid.Row="6"
                     Grid.Column="1"
                     Orientation="Horizontal">
-            <ComboBox Width="310"
+            <ComboBox Width="340"
                       IsEditable="True"
                       ItemsSource="{Binding CloudModels}"
                       Text="{Binding CloudModel, UpdateSourceTrigger=PropertyChanged}" />
@@ -207,15 +161,6 @@
                 </Button.Style>
             </Button>
         </StackPanel>
-        <Button Grid.Row="6"
-                Grid.Column="2"
-                Content="❓"
-                Width="24"
-                Height="24"
-                Margin="4,0,0,0"
-                FontSize="12"
-                Click="HelpButton_CloudModel_Click"
-                ToolTip="查看帮助" />
 
         <TextBlock Grid.Row="7"
                    Grid.Column="0"
@@ -224,15 +169,6 @@
         <TextBox Grid.Row="7"
                  Grid.Column="1"
                  Text="{Binding CloudRequestTimeoutSeconds, UpdateSourceTrigger=PropertyChanged}" />
-        <Button Grid.Row="7"
-                Grid.Column="2"
-                Content="❓"
-                Width="24"
-                Height="24"
-                Margin="4,0,0,0"
-                FontSize="12"
-                Click="HelpButton_CloudRequestTimeout_Click"
-                ToolTip="查看帮助" />
 
         <TextBlock Grid.Row="8"
                    Grid.Column="0"
@@ -241,15 +177,6 @@
         <TextBox Grid.Row="8"
                  Grid.Column="1"
                  Text="{Binding CloudConcurrencyLimit, UpdateSourceTrigger=PropertyChanged}" />
-        <Button Grid.Row="8"
-                Grid.Column="2"
-                Content="❓"
-                Width="24"
-                Height="24"
-                Margin="4,0,0,0"
-                FontSize="12"
-                Click="HelpButton_CloudConcurrency_Click"
-                ToolTip="查看帮助" />
 
         <TextBlock Grid.Row="9"
                    Grid.Column="0"
@@ -258,15 +185,6 @@
         <TextBox Grid.Row="9"
                  Grid.Column="1"
                  Text="{Binding AiBatchSize, UpdateSourceTrigger=PropertyChanged}" />
-        <Button Grid.Row="9"
-                Grid.Column="2"
-                Content="❓"
-                Width="24"
-                Height="24"
-                Margin="4,0,0,0"
-                FontSize="12"
-                Click="HelpButton_AiBatchSize_Click"
-                ToolTip="查看帮助" />
 
         <TextBlock Grid.Row="10"
                    Grid.Column="0"
@@ -275,15 +193,6 @@
         <TextBox Grid.Row="10"
                  Grid.Column="1"
                  Text="{Binding AiTotalLimit, UpdateSourceTrigger=PropertyChanged}" />
-        <Button Grid.Row="10"
-                Grid.Column="2"
-                Content="❓"
-                Width="24"
-                Height="24"
-                Margin="4,0,0,0"
-                FontSize="12"
-                Click="HelpButton_AiTotalLimit_Click"
-                ToolTip="查看帮助" />
 
         <TextBlock Grid.Row="11"
                    Grid.Column="0"
@@ -292,15 +201,6 @@
         <TextBox Grid.Row="11"
                  Grid.Column="1"
                  Text="{Binding SearchApiEndpoint, UpdateSourceTrigger=PropertyChanged}" />
-        <Button Grid.Row="11"
-                Grid.Column="2"
-                Content="❓"
-                Width="24"
-                Height="24"
-                Margin="4,0,0,0"
-                FontSize="12"
-                Click="HelpButton_SearchApiEndpoint_Click"
-                ToolTip="查看帮助" />
 
         <TextBlock Grid.Row="12"
                    Grid.Column="0"
@@ -309,15 +209,6 @@
         <PasswordBox Grid.Row="12"
                      Grid.Column="1"
                      PasswordChanged="SearchApiKeyBox_OnPasswordChanged" />
-        <Button Grid.Row="12"
-                Grid.Column="2"
-                Content="❓"
-                Width="24"
-                Height="24"
-                Margin="4,0,0,0"
-                FontSize="12"
-                Click="HelpButton_SearchApiKey_Click"
-                ToolTip="查看帮助" />
 
         <TextBlock Grid.Row="13"
                    Grid.Column="0"
@@ -327,15 +218,6 @@
                  Grid.Column="1"
                  IsEnabled="{Binding IsLocalLlmConfigEnabled}"
                  Text="{Binding LocalLlmEndpoint, UpdateSourceTrigger=PropertyChanged}" />
-        <Button Grid.Row="13"
-                Grid.Column="2"
-                Content="❓"
-                Width="24"
-                Height="24"
-                Margin="4,0,0,0"
-                FontSize="12"
-                Click="HelpButton_LocalLlmEndpoint_Click"
-                ToolTip="查看帮助" />
 
         <TextBlock Grid.Row="14"
                    Grid.Column="0"
@@ -344,7 +226,7 @@
         <StackPanel Grid.Row="14"
                     Grid.Column="1"
                     Orientation="Horizontal">
-            <ComboBox Width="310"
+            <ComboBox Width="340"
                       IsEditable="True"
                       IsEnabled="{Binding IsLocalLlmConfigEnabled}"
                       ItemsSource="{Binding LocalModels}"
@@ -366,15 +248,6 @@
                 </Button.Style>
             </Button>
         </StackPanel>
-        <Button Grid.Row="14"
-                Grid.Column="2"
-                Content="❓"
-                Width="24"
-                Height="24"
-                Margin="4,0,0,0"
-                FontSize="12"
-                Click="HelpButton_LocalLlmModel_Click"
-                ToolTip="查看帮助" />
 
         <TextBlock Grid.Row="15"
                    Grid.Column="0"
@@ -384,15 +257,6 @@
                      Grid.Column="1"
                      IsEnabled="{Binding IsLocalLlmConfigEnabled}"
                      PasswordChanged="LocalLlmApiKeyBox_OnPasswordChanged" />
-        <Button Grid.Row="15"
-                Grid.Column="2"
-                Content="❓"
-                Width="24"
-                Height="24"
-                Margin="4,0,0,0"
-                FontSize="12"
-                Click="HelpButton_LocalLlmApiKey_Click"
-                ToolTip="查看帮助" />
 
         <TextBlock Grid.Row="16"
                    Grid.Column="0"
@@ -401,15 +265,6 @@
         <TextBox Grid.Row="16"
                  Grid.Column="1"
                  Text="{Binding MaxDepth, UpdateSourceTrigger=PropertyChanged}" />
-        <Button Grid.Row="16"
-                Grid.Column="2"
-                Content="❓"
-                Width="24"
-                Height="24"
-                Margin="4,0,0,0"
-                FontSize="12"
-                Click="HelpButton_MaxDepth_Click"
-                ToolTip="查看帮助" />
 
         <TextBlock Grid.Row="17"
                    Grid.Column="0"
@@ -425,15 +280,6 @@
                     Padding="12,2"
                     Click="MaxNodesButton_Click" />
         </StackPanel>
-        <Button Grid.Row="17"
-                Grid.Column="2"
-                Content="❓"
-                Width="24"
-                Height="24"
-                Margin="4,0,0,0"
-                FontSize="12"
-                Click="HelpButton_MaxNodes_Click"
-                ToolTip="查看帮助" />
 
         <TextBlock Grid.Row="18"
                    Grid.Column="0"
@@ -442,15 +288,6 @@
         <TextBox Grid.Row="18"
                  Grid.Column="1"
                  Text="{Binding DelayPerNodeMs, UpdateSourceTrigger=PropertyChanged}" />
-        <Button Grid.Row="18"
-                Grid.Column="2"
-                Content="❓"
-                Width="24"
-                Height="24"
-                Margin="4,0,0,0"
-                FontSize="12"
-                Click="HelpButton_DelayPerNode_Click"
-                ToolTip="查看帮助" />
 
         <TextBlock Grid.Row="19"
                    Grid.Column="0"
@@ -459,22 +296,13 @@
         <StackPanel Grid.Row="19"
                     Grid.Column="1"
                     Orientation="Horizontal">
-            <TextBox Width="330"
+            <TextBox Width="360"
                      Text="{Binding CacheDirectory, UpdateSourceTrigger=PropertyChanged}" />
             <Button Content="{x:Static res:Strings.ButtonBrowse}"
                     Margin="8,0,0,0"
                     Padding="12,2"
                     Click="BrowseCacheButton_Click" />
         </StackPanel>
-        <Button Grid.Row="19"
-                Grid.Column="2"
-                Content="❓"
-                Width="24"
-                Height="24"
-                Margin="4,0,0,0"
-                FontSize="12"
-                Click="HelpButton_CacheDirectory_Click"
-                ToolTip="查看帮助" />
 
         <TextBlock Grid.Row="20"
                    Grid.Column="0"
@@ -483,7 +311,7 @@
         <StackPanel Grid.Row="20"
                     Grid.Column="1"
                     Orientation="Horizontal">
-            <TextBox Width="330"
+            <TextBox Width="360"
                      Text="{Binding DatabasePath, UpdateSourceTrigger=PropertyChanged}" />
             <Button Content="{x:Static res:Strings.ButtonBrowse}"
                     Margin="8,0,0,0"
@@ -494,15 +322,6 @@
                     Padding="12,2"
                     Click="ClearCacheButton_Click" />
         </StackPanel>
-        <Button Grid.Row="20"
-                Grid.Column="2"
-                Content="❓"
-                Width="24"
-                Height="24"
-                Margin="4,0,0,0"
-                FontSize="12"
-                Click="HelpButton_DatabasePath_Click"
-                ToolTip="查看帮助" />
 
         <TextBlock Grid.Row="21"
                    Grid.Column="0"
@@ -512,15 +331,6 @@
                   Grid.Column="1"
                   Content="{x:Static res:Strings.CheckboxIgnoreCacheSize}"
                   IsChecked="{Binding IgnoreCacheSize}" />
-        <Button Grid.Row="21"
-                Grid.Column="2"
-                Content="❓"
-                Width="24"
-                Height="24"
-                Margin="4,0,0,0"
-                FontSize="12"
-                Click="HelpButton_IgnoreCacheSize_Click"
-                ToolTip="查看帮助" />
 
         <CheckBox Grid.Row="22"
                   Grid.Column="0"
@@ -528,15 +338,6 @@
                   Margin="0,12,0,0"
                   Content="{x:Static res:Strings.CheckboxPersistApiKeys}"
                   IsChecked="{Binding PersistApiKeys}" />
-        <Button Grid.Row="22"
-                Grid.Column="2"
-                Content="❓"
-                Width="24"
-                Height="24"
-                Margin="4,12,0,0"
-                FontSize="12"
-                Click="HelpButton_PersistApiKeys_Click"
-                ToolTip="查看帮助" />
 
         <CheckBox Grid.Row="23"
                   Grid.Column="0"
@@ -544,18 +345,9 @@
                   Margin="0,12,0,0"
                   Content="{x:Static res:Strings.CheckboxIncludeHidden}"
                   IsChecked="{Binding IncludeHidden}" />
-        <Button Grid.Row="23"
-                Grid.Column="2"
-                Content="❓"
-                Width="24"
-                Height="24"
-                Margin="4,12,0,0"
-                FontSize="12"
-                Click="HelpButton_IncludeHidden_Click"
-                ToolTip="查看帮助" />
 
         <StackPanel Grid.Row="24"
-                    Grid.ColumnSpan="3"
+                    Grid.ColumnSpan="2"
                     Orientation="Horizontal"
                     HorizontalAlignment="Right"
                     Margin="0,20,0,0">
