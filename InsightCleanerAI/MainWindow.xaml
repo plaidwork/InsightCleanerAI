@@ -106,7 +106,13 @@
         </Border>
 
         <StatusBar DockPanel.Dock="Bottom">
-            <TextBlock Text="{Binding StatusMessage}" />
+            <StatusBarItem>
+                <TextBlock Text="{Binding StatusMessage}" />
+            </StatusBarItem>
+            <StatusBarItem DockPanel.Dock="Right">
+                <TextBlock Text="{Binding AppVersion}"
+                           Foreground="DimGray" />
+            </StatusBarItem>
         </StatusBar>
 
         <Grid Margin="12">

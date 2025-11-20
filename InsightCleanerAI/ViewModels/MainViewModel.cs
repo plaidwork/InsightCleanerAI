@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
@@ -24,6 +25,7 @@ namespace InsightCleanerAI.ViewModels
         private readonly AiInsightCoordinator _insightCoordinator;
         private readonly ConcurrentDictionary<StorageNode, StorageNodeViewModel> _nodeViewModels = new();
         private readonly ModelListService _modelListService = new();
+        private readonly string _appVersion = Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "0.0.0";
 
         private IInsightStore? _insightStore;
         private CancellationTokenSource? _scanCts;
@@ -164,6 +166,8 @@ namespace InsightCleanerAI.ViewModels
         }
 
         public AiConfiguration AiConfiguration { get; }
+
+        public string AppVersion => $"v{_appVersion}";
 
         public bool IgnoreCacheSize
         {
